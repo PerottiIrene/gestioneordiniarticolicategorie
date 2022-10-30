@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import it.prova.gestioneordiniarticolicategorie.dao.EntityManagerUtil;
@@ -53,6 +54,16 @@ public class TestGestioneArticoliCategorie {
 			testRimuoviCategoriaEDisassociaArticoli(categoriaServiceInstance, articoloServiceInstance, ordineServiceInstance);
 			
 			testRimozioneOrdine(ordineServiceInstance);
+			
+			testOrdiniEffettuatiPerUnaDeterminataCategoria(ordineServiceInstance, articoloServiceInstance, categoriaServiceInstance);
+			
+			testCategorieArticoliDiUnDeterminatoOrdine(ordineServiceInstance, articoloServiceInstance, categoriaServiceInstance);
+			
+//			testSommaPrezzoArticoliDiUnaDetCategoria(ordineServiceInstance, articoloServiceInstance, categoriaServiceInstance);
+			
+			testCodiciDiCategorieOrdiniEffettuatiDuranteUnMese(ordineServiceInstance, articoloServiceInstance, categoriaServiceInstance);
+			
+			testSommaPrezziArticoliIndrizzatiAdUnDestinatario(ordineServiceInstance, articoloServiceInstance, categoriaServiceInstance);
 
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -311,6 +322,159 @@ public class TestGestioneArticoliCategorie {
 			throw new RuntimeException("testRimuoviOrdne fallito: rimozione non avvenuta ");
 		
 		System.out.println(".......testRimuoviOrdne passed.............");
+	}
+	
+	private static void testOrdiniEffettuatiPerUnaDeterminataCategoria(OrdineService ordineServiceInstance, ArticoloService articoloServiceInstance, 
+			CategoriaService categoriaServiceInstance) throws Exception {
+		
+		System.out.println(".......testOrdiniEffettuatiPerUnaDeterminataCategoria inizio.............");
+
+		Articolo articoloInstance = new Articolo("cuffie", "0567uy", 50,
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/07/2022"));
+		Ordine ordineInstance = new Ordine("marco", "via mosca", new SimpleDateFormat("dd/MM/yyyy").parse("20/09/2022"),
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/09/2022"));
+		ordineServiceInstance.inserisciNuovo(ordineInstance);
+		articoloInstance.setOrdine(ordineInstance);
+		articoloServiceInstance.inserisciNuovo(articoloInstance);
+
+		if (articoloInstance.getId() == null)
+			throw new RuntimeException("testInserimentoNuovoArticolo fallito ");
+
+		Categoria nuovaCategoria = new Categoria("maglie", "30");
+		categoriaServiceInstance.inserisciNuovo(nuovaCategoria);
+		
+		Categoria categoriaConfronto = new Categoria("scarpe");
+		categoriaServiceInstance.inserisciNuovo(categoriaConfronto);
+
+		if (nuovaCategoria.getId() == null)
+			throw new RuntimeException("testInserimentoNuovaCategoria fallito ");
+
+		articoloServiceInstance.aggiungiCategoria(articoloInstance, nuovaCategoria);
+		
+		List<Ordine> listaOrdiniEffettuatiPerUnaDetCategoria= ordineServiceInstance.ordiniEffettuatiPerUnaDeterminataCategoria(nuovaCategoria);
+		if(listaOrdiniEffettuatiPerUnaDetCategoria.isEmpty())
+			throw new RuntimeException("testOrdiniEffettuatiPerUnaDeterminataCategoria fallito ");
+		
+		System.out.println(".......testOrdiniEffettuatiPerUnaDeterminataCategoria passed.............");
+	}
+	
+	private static void testCategorieArticoliDiUnDeterminatoOrdine(OrdineService ordineServiceInstance, ArticoloService articoloServiceInstance, 
+			CategoriaService categoriaServiceInstance) throws Exception {
+		
+		System.out.println(".......testCategorieArticoliDiUnDeterminatoOrdine inizio.............");
+
+		Articolo articoloInstance = new Articolo("cuffie", "0567uy", 50,
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/07/2022"));
+		Articolo articoloInstance2 = new Articolo("cuffie", "0567uy", 50,
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/07/2022"));
+		Ordine ordineInstance = new Ordine("marco", "via mosca", new SimpleDateFormat("dd/MM/yyyy").parse("20/09/2022"),
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/09/2022"));
+		ordineServiceInstance.inserisciNuovo(ordineInstance);
+		articoloInstance.setOrdine(ordineInstance);
+		articoloInstance2.setOrdine(ordineInstance);
+		articoloServiceInstance.inserisciNuovo(articoloInstance);
+		articoloServiceInstance.inserisciNuovo(articoloInstance2);
+
+		Categoria nuovaCategoria = new Categoria("maglie", "30");
+		categoriaServiceInstance.inserisciNuovo(nuovaCategoria);
+		Categoria nuovaCategoria2 = new Categoria("pc", "30");
+		categoriaServiceInstance.inserisciNuovo(nuovaCategoria2);
+		articoloServiceInstance.aggiungiCategoria(articoloInstance2, nuovaCategoria2);
+		articoloServiceInstance.aggiungiCategoria(articoloInstance, nuovaCategoria);
+		articoloServiceInstance.aggiorna(articoloInstance2);
+		articoloServiceInstance.aggiorna(articoloInstance);
+		
+		List<String> listaCategorieDiUnDetOrdine= categoriaServiceInstance.categorieDegliarticoliDiUnDeterminatoOrdine(ordineInstance);
+		if(listaCategorieDiUnDetOrdine.size() != 2)
+			throw new RuntimeException("testCategorieArticoliDiUnDeterminatoOrdine fallito ");
+		
+		System.out.println(".......testCategorieArticoliDiUnDeterminatoOrdine passed.............");
+	}
+	
+	private static void testSommaPrezzoArticoliDiUnaDetCategoria(OrdineService ordineServiceInstance, ArticoloService articoloServiceInstance, 
+			CategoriaService categoriaServiceInstance) throws Exception {
+		
+		System.out.println(".......testSommaPrezzoArticoliDiUnaDetCategoria inizio.............");
+
+		Articolo articoloInstance = new Articolo("cuffie", "0567uy", 50,
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/07/2022"));
+		Articolo articoloInstance2 = new Articolo("cuffie", "0567uy", 100,
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/07/2022"));
+		Ordine ordineInstance = new Ordine("marco", "via mosca", new SimpleDateFormat("dd/MM/yyyy").parse("20/09/2022"),
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/09/2022"));
+		ordineServiceInstance.inserisciNuovo(ordineInstance);
+		articoloInstance.setOrdine(ordineInstance);
+		articoloInstance2.setOrdine(ordineInstance);
+		articoloServiceInstance.inserisciNuovo(articoloInstance);
+		articoloServiceInstance.inserisciNuovo(articoloInstance2);
+
+		Categoria nuovaCategoria = new Categoria("maglie", "30");
+		categoriaServiceInstance.inserisciNuovo(nuovaCategoria);
+
+		Set<Articolo> listaArticoli = new HashSet<>();
+		listaArticoli.add(articoloInstance);
+		listaArticoli.add(articoloInstance2);
+		nuovaCategoria.setArticoli(listaArticoli);
+		
+		categoriaServiceInstance.aggiorna(nuovaCategoria);
+		
+		if(nuovaCategoria.getArticoli().isEmpty())
+			throw new RuntimeException("la categoria e gli articoli non sono collegati ");
+		
+		if(articoloServiceInstance.sommaPrezziDegliArticoliDiUnaCategoria(nuovaCategoria) < 0)
+			throw new RuntimeException("testSommaPrezzoArticoliDiUnaDetCategoria fallito ");
+		
+		System.out.println(".......testSommaPrezzoArticoliDiUnaDetCategoria passed.............");
+	}
+	
+	private static void testCodiciDiCategorieOrdiniEffettuatiDuranteUnMese(OrdineService ordineServiceInstance, ArticoloService articoloServiceInstance, 
+			CategoriaService categoriaServiceInstance) throws Exception {
+		
+		System.out.println(".......testCodiciDiCategorieOrdiniEffettuatiDuranteUnMese inizio.............");
+
+		Articolo articoloInstance = new Articolo("cuffie", "0567uy", 50,
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/07/2022"));
+		Ordine ordineInstance = new Ordine("marco", "via mosca", new SimpleDateFormat("dd/MM/yyyy").parse("20/09/2022"),
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/09/2022"));
+		ordineServiceInstance.inserisciNuovo(ordineInstance);
+		articoloInstance.setOrdine(ordineInstance);
+		articoloServiceInstance.inserisciNuovo(articoloInstance);
+		
+		Categoria nuovacategoria=new Categoria("maglie", "30");
+		categoriaServiceInstance.aggiungiArticolo(nuovacategoria, articoloInstance);
+		categoriaServiceInstance.inserisciNuovo(nuovacategoria);
+		
+		Date dataConfronto = new SimpleDateFormat("dd-MM-yyyy").parse("03-09-2022");
+		
+		List<String> listaCodiciOrdiniEffetuatiDuranteUnMese=categoriaServiceInstance.codiciDiCategorieOrdiniEffettuatiDuranteUnMese(dataConfronto);
+		if(listaCodiciOrdiniEffetuatiDuranteUnMese.size() != 1)
+            throw new RuntimeException("testCodiciDiCategorieOrdiniEffettuatiDuranteUnMese fallito ");
+		
+		System.out.println(".......testCodiciDiCategorieOrdiniEffettuatiDuranteUnMese passed.............");
+	}
+	
+	private static void testSommaPrezziArticoliIndrizzatiAdUnDestinatario(OrdineService ordineServiceInstance, ArticoloService articoloServiceInstance, 
+	CategoriaService categoriaServiceInstance) throws Exception {
+		
+		System.out.println(".......testSommaPrezziArticoliIndrizzatiAdUnDestinatario inizio.............");
+
+		Articolo articoloInstance = new Articolo("cuffie", "0567uy", 50,
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/07/2022"));
+		Ordine ordineInstance = new Ordine("marco", "via mosca", new SimpleDateFormat("dd/MM/yyyy").parse("20/09/2022"),
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/09/2022"));
+		ordineServiceInstance.inserisciNuovo(ordineInstance);
+		articoloInstance.setOrdine(ordineInstance);
+		articoloServiceInstance.inserisciNuovo(articoloInstance);
+		
+		Categoria nuovacategoria=new Categoria("maglie", "30");
+		categoriaServiceInstance.aggiungiArticolo(nuovacategoria, articoloInstance);
+		categoriaServiceInstance.inserisciNuovo(nuovacategoria);
+		
+		String nomeDestinatario="marco";
+		if(articoloServiceInstance.sommaPrezziArticoliIndrizzatiAdUnDestinatario(nomeDestinatario) < 50)
+           throw new RuntimeException("testSommaPrezziArticoliIndrizzatiAdUnDestinatario fallito ");
+		
+		System.out.println(".......testSommaPrezziArticoliIndrizzatiAdUnDestinatario passed.............");
 	}
 
 }

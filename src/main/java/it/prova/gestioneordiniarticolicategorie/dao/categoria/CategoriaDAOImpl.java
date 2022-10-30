@@ -1,5 +1,6 @@
 package it.prova.gestioneordiniarticolicategorie.dao.categoria;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -7,6 +8,7 @@ import javax.persistence.TypedQuery;
 
 import it.prova.gestioneordiniarticolicategorie.model.Articolo;
 import it.prova.gestioneordiniarticolicategorie.model.Categoria;
+import it.prova.gestioneordiniarticolicategorie.model.Ordine;
 
 public class CategoriaDAOImpl implements CategoriaDAO {
 
@@ -63,6 +65,19 @@ public class CategoriaDAOImpl implements CategoriaDAO {
 				.createQuery("select c FROM Categoria c left join fetch c.articoli a where c.id = :idCategoria", Categoria.class);
 		query.setParameter("idCategoria", id);
 		return query.getResultList().stream().findFirst().orElse(null);
+	}
+
+	@Override
+	public List<String> categorieDegliarticoliDiUnDeterminatoOrdine(Ordine ordine) throws Exception {
+		TypedQuery<String> query = entityManager.createQuery("select distinct c.descrizione from Categoria c join c.articoli a join a.ordine o where o.id = ?1", String.class);
+		return query.setParameter(1, ordine.getId()).getResultList();
+	}
+
+	@Override
+	public List<String> codiciDiCategorieOrdiniEffettuatiDuranteUnMese(Date data) throws Exception {
+		TypedQuery<String> query = entityManager.createQuery("select distinct c.codice from Categoria c join c.articoli a join a.ordine o where YEAR(o.dataSpedizione) = YEAR(:data) and MONTH(o.dataSpedizione) = MONTH(:data)", String.class);
+		query.setParameter("data", new java.sql.Date(data.getTime()));
+		return query.getResultList();
 	}
 
 }

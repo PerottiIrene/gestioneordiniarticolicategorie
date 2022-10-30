@@ -31,4 +31,8 @@ public interface ArticoloService {
 	public void aggiungiOrdine(Articolo articoloInstance, Ordine ordineInstance) throws Exception;
 	
 	public void rimuoviArticoloEDisassociaCategorie (Long id) throws Exception;
+	
+	public long sommaPrezziDegliArticoliDiUnaCategoria (Categoria categoria) throws Exception;
+	
+	public long sommaPrezziArticoliIndrizzatiAdUnDestinatario (String nomeDestinatario) throws Exception;
 }

@@ -31,6 +31,11 @@ public class Categoria {
 	private Set<Articolo> articoli = new HashSet<Articolo>();
 	
 	public Categoria() {}
+	
+	public Categoria(String descrizione) {
+		super();
+		this.descrizione = descrizione;
+	}
 
 	public Categoria(String descrizione, String codice) {
 		super();

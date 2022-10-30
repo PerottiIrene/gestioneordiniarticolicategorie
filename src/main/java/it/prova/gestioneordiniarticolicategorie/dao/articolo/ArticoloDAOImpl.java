@@ -6,6 +6,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import it.prova.gestioneordiniarticolicategorie.model.Articolo;
+import it.prova.gestioneordiniarticolicategorie.model.Categoria;
 
 public class ArticoloDAOImpl implements ArticoloDAO{
 	
@@ -72,6 +73,22 @@ public class ArticoloDAOImpl implements ArticoloDAO{
 	public void rimuoviArticoloEDisassociaCategorie(Long id) throws Exception {
 		entityManager.createNativeQuery("delete from articolo_categoria where articolo_id=?1").setParameter(1, id).executeUpdate();
 		this.delete(this.get(id));
+	}
+
+	@Override
+	public long sommaPrezziDegliArticoliDiUnaCategoria(Categoria categoria) throws Exception {
+		TypedQuery<Long> query = entityManager
+				.createQuery("select sum(a.prezzoSingolo) FROM Articolo a join a.categorie c where c=?1", Long.class);
+		query.setParameter(1, categoria);
+		return query.getSingleResult().longValue();
+	}
+
+	@Override
+	public long sommaPrezziArticoliIndrizzatiAdUnDestinatario(String nomeDestinatario) throws Exception {
+		TypedQuery<Long> query = entityManager
+				.createQuery("select sum(a.prezzoSingolo) FROM Articolo a join a.categorie c join a.ordine o where o.nomeDestinatario=?1", Long.class);
+		query.setParameter(1, nomeDestinatario);
+		return query.getSingleResult().longValue();
 	}
 
 }

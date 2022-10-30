@@ -59,4 +59,10 @@ public class OrdineDAOImpl implements OrdineDAO{
 		return query.getResultList().stream().findFirst().orElse(null);
 	}
 
+	@Override
+	public List<Ordine> ordiniEffettuatiPerUnaDeterminataCategoria(Categoria categoria) throws Exception {
+		TypedQuery<Ordine> query = entityManager.createQuery("select o from Ordine o join o.articoli a join a.categorie c where c.descrizione = ?1", Ordine.class);
+		return query.setParameter(1, categoria.getDescrizione()).getResultList();
+	}
+
 }
