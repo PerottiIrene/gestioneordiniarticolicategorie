@@ -59,11 +59,17 @@ public class TestGestioneArticoliCategorie {
 			
 			testCategorieArticoliDiUnDeterminatoOrdine(ordineServiceInstance, articoloServiceInstance, categoriaServiceInstance);
 			
-//			testSommaPrezzoArticoliDiUnaDetCategoria(ordineServiceInstance, articoloServiceInstance, categoriaServiceInstance);
+			testSommaPrezzoArticoliDiUnaDetCategoria(ordineServiceInstance, articoloServiceInstance, categoriaServiceInstance);
 			
 			testCodiciDiCategorieOrdiniEffettuatiDuranteUnMese(ordineServiceInstance, articoloServiceInstance, categoriaServiceInstance);
 			
 			testSommaPrezziArticoliIndrizzatiAdUnDestinatario(ordineServiceInstance, articoloServiceInstance, categoriaServiceInstance);
+			
+			testListaIndirizziConStringaNumeroSerialeArticoli(ordineServiceInstance, articoloServiceInstance, categoriaServiceInstance);
+			
+			testArticoliSpeditiOltreDataDiScadenza(ordineServiceInstance, articoloServiceInstance, categoriaServiceInstance);
+			
+			testOrdineConSpedizionePiuRecente(ordineServiceInstance, articoloServiceInstance, categoriaServiceInstance);
 
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -411,17 +417,18 @@ public class TestGestioneArticoliCategorie {
 		Categoria nuovaCategoria = new Categoria("maglie", "30");
 		categoriaServiceInstance.inserisciNuovo(nuovaCategoria);
 
-		Set<Articolo> listaArticoli = new HashSet<>();
-		listaArticoli.add(articoloInstance);
-		listaArticoli.add(articoloInstance2);
-		nuovaCategoria.setArticoli(listaArticoli);
+		articoloInstance.getCategorie().add(nuovaCategoria);
+		articoloInstance2.getCategorie().add(nuovaCategoria);
 		
-		categoriaServiceInstance.aggiorna(nuovaCategoria);
+		articoloServiceInstance.aggiorna(articoloInstance);
+		articoloServiceInstance.aggiorna(articoloInstance2);
 		
-		if(nuovaCategoria.getArticoli().isEmpty())
+		Categoria categoriaReloaded = categoriaServiceInstance.caricaSingoloElementoEagerArticolo(nuovaCategoria.getId());
+		
+		if(categoriaReloaded.getArticoli().isEmpty())
 			throw new RuntimeException("la categoria e gli articoli non sono collegati ");
 		
-		if(articoloServiceInstance.sommaPrezziDegliArticoliDiUnaCategoria(nuovaCategoria) < 0)
+		if(articoloServiceInstance.sommaPrezziDegliArticoliDiUnaCategoria(nuovaCategoria) < 150)
 			throw new RuntimeException("testSommaPrezzoArticoliDiUnaDetCategoria fallito ");
 		
 		System.out.println(".......testSommaPrezzoArticoliDiUnaDetCategoria passed.............");
@@ -460,21 +467,117 @@ public class TestGestioneArticoliCategorie {
 
 		Articolo articoloInstance = new Articolo("cuffie", "0567uy", 50,
 				new SimpleDateFormat("dd/MM/yyyy").parse("24/07/2022"));
-		Ordine ordineInstance = new Ordine("marco", "via mosca", new SimpleDateFormat("dd/MM/yyyy").parse("20/09/2022"),
+		Ordine ordineInstance = new Ordine("irene", "via mosca", new SimpleDateFormat("dd/MM/yyyy").parse("20/09/2022"),
 				new SimpleDateFormat("dd/MM/yyyy").parse("24/09/2022"));
 		ordineServiceInstance.inserisciNuovo(ordineInstance);
 		articoloInstance.setOrdine(ordineInstance);
 		articoloServiceInstance.inserisciNuovo(articoloInstance);
 		
 		Categoria nuovacategoria=new Categoria("maglie", "30");
-		categoriaServiceInstance.aggiungiArticolo(nuovacategoria, articoloInstance);
 		categoriaServiceInstance.inserisciNuovo(nuovacategoria);
+		articoloServiceInstance.aggiungiCategoria(articoloInstance, nuovacategoria);
 		
-		String nomeDestinatario="marco";
+		String nomeDestinatario="irene";
 		if(articoloServiceInstance.sommaPrezziArticoliIndrizzatiAdUnDestinatario(nomeDestinatario) < 50)
            throw new RuntimeException("testSommaPrezziArticoliIndrizzatiAdUnDestinatario fallito ");
 		
 		System.out.println(".......testSommaPrezziArticoliIndrizzatiAdUnDestinatario passed.............");
+	}
+	
+	private static void testListaIndirizziConStringaNumeroSerialeArticoli(OrdineService ordineServiceInstance, ArticoloService articoloServiceInstance, 
+			CategoriaService categoriaServiceInstance) throws Exception {
+		
+		System.out.println(".......testListaIndirizziConStringaNumeroSerialeArticoli inizio.............");
+
+		Articolo articoloInstance = new Articolo("cuffie", "bgt7000", 50,
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/07/2022"));
+		Ordine ordineInstance = new Ordine("marco", "via mosca", new SimpleDateFormat("dd/MM/yyyy").parse("20/09/2022"),
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/09/2022"));
+		ordineServiceInstance.inserisciNuovo(ordineInstance);
+		articoloInstance.setOrdine(ordineInstance);
+		articoloServiceInstance.inserisciNuovo(articoloInstance);
+		
+		Articolo articoloInstance2 = new Articolo("cuffie", "bgt7000", 50,
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/07/2022"));
+		Ordine ordineInstance2 = new Ordine("marco", "via mosca", new SimpleDateFormat("dd/MM/yyyy").parse("20/09/2022"),
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/09/2022"));
+		ordineServiceInstance.inserisciNuovo(ordineInstance2);
+		articoloInstance2.setOrdine(ordineInstance2);
+		articoloServiceInstance.inserisciNuovo(articoloInstance2);
+		
+		Categoria nuovacategoria=new Categoria("maglie", "30");
+		categoriaServiceInstance.aggiungiArticolo(nuovacategoria, articoloInstance);
+		categoriaServiceInstance.aggiungiArticolo(nuovacategoria, articoloInstance2);
+		categoriaServiceInstance.inserisciNuovo(nuovacategoria);
+		
+		List<String> indirizziConStringaNelNumeroSeriale=ordineServiceInstance.indirizziCheContengonoUnaStringaNelNumSerialeArticoli("bgt");
+		if(indirizziConStringaNelNumeroSeriale.size() != 1)
+           throw new RuntimeException("testListaIndirizziConStringaNumeroSerialeArticoli fallito ");
+		
+		System.out.println(".......testListaIndirizziConStringaNumeroSerialeArticoli passed.............");
+	} 
+	
+	private static void testArticoliSpeditiOltreDataDiScadenza(OrdineService ordineServiceInstance, ArticoloService articoloServiceInstance, 
+			CategoriaService categoriaServiceInstance) throws Exception {
+		
+		System.out.println(".......testArticoliSpeditiOltreDataDiScadenza inizio.............");
+		
+		Articolo articoloInstance = new Articolo("cuffie", "bgt7000", 50,
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/07/2022"));
+		Articolo articoloInstance2 = new Articolo("cuffie", "bgt7000", 50,
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/07/2022"));
+		Ordine ordineInstance = new Ordine("marco", "via mosca", new SimpleDateFormat("dd/MM/yyyy").parse("20/09/2022"),
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/09/2022"));
+		ordineServiceInstance.inserisciNuovo(ordineInstance);
+		articoloInstance.setOrdine(ordineInstance);
+		articoloInstance2.setOrdine(ordineInstance);
+		articoloServiceInstance.inserisciNuovo(articoloInstance);
+		articoloServiceInstance.inserisciNuovo(articoloInstance2);
+		
+		Categoria nuovacategoria=new Categoria("maglie", "30");
+		categoriaServiceInstance.aggiungiArticolo(nuovacategoria, articoloInstance);
+		categoriaServiceInstance.aggiungiArticolo(nuovacategoria, articoloInstance2);
+		categoriaServiceInstance.inserisciNuovo(nuovacategoria);
+		
+		List<Articolo> listaArticoliSpeditiOltreDataDiScadenza =articoloServiceInstance.articoliConOrdineSpeditoOltreLaDataDiScadenza();
+		if(listaArticoliSpeditiOltreDataDiScadenza == null)
+           throw new RuntimeException("testArticoliSpeditiOltreDataDiScadenza fallito ");
+		
+		System.out.println(".......testArticoliSpeditiOltreDataDiScadenza passed.............");
+	}
+	
+	private static void testOrdineConSpedizionePiuRecente (OrdineService ordineServiceInstance, ArticoloService articoloServiceInstance, 
+			CategoriaService categoriaServiceInstance) throws Exception {
+		
+        System.out.println(".......testOrdineConSpedizionePiuRecente inizio.............");
+		
+		Articolo articoloInstance = new Articolo("cuffie", "bgt7000", 50,
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/07/2022"));
+		Articolo articoloInstance2 = new Articolo("cuffie", "bgt7000", 50,
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/07/2022"));
+		Ordine ordineInstance = new Ordine("marco", "via mosca", new SimpleDateFormat("dd/MM/yyyy").parse("20/09/2022"),
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/09/2022"));
+		Ordine ordineInstance2 = new Ordine("marco", "via mosca", new SimpleDateFormat("dd/MM/yyyy").parse("20/09/2018"),
+				new SimpleDateFormat("dd/MM/yyyy").parse("24/09/2022"));
+		ordineServiceInstance.inserisciNuovo(ordineInstance);
+		ordineServiceInstance.inserisciNuovo(ordineInstance2);
+		articoloInstance.setOrdine(ordineInstance);
+		articoloInstance2.setOrdine(ordineInstance2);
+		articoloServiceInstance.inserisciNuovo(articoloInstance);
+		articoloServiceInstance.inserisciNuovo(articoloInstance2);
+		
+		Categoria nuovacategoria=new Categoria("maglie", "30");
+		categoriaServiceInstance.inserisciNuovo(nuovacategoria);
+		articoloServiceInstance.aggiungiCategoria(articoloInstance, nuovacategoria);
+		articoloServiceInstance.aggiungiCategoria(articoloInstance2, nuovacategoria);
+		
+		
+		Ordine ordineConSpedizionePiuRecente = ordineServiceInstance.ordineConSpedizionePiuRecente(nuovacategoria);
+		if(ordineConSpedizionePiuRecente == null)
+            throw new RuntimeException("testOrdineConSpedizionePiuRecente fallito ");
+		
+		System.out.println(".......testOrdineConSpedizionePiuRecente passed.............");
+		
 	}
 
 }

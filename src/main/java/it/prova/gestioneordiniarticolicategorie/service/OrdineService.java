@@ -28,6 +28,10 @@ public interface OrdineService {
 	
 	public List<Ordine> ordiniEffettuatiPerUnaDeterminataCategoria(Categoria categoria) throws Exception;
 	
+	public List<String> indirizziCheContengonoUnaStringaNelNumSerialeArticoli (String stringaDaConfrontare) throws Exception;
+	
+	public Ordine ordineConSpedizionePiuRecente (Categoria categoria) throws Exception;
+	
 	// per injection
     public void setOrdineDAO(OrdineDAO ordineDAO);
 

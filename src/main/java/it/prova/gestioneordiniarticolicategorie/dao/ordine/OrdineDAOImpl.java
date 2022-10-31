@@ -65,4 +65,21 @@ public class OrdineDAOImpl implements OrdineDAO{
 		return query.setParameter(1, categoria.getDescrizione()).getResultList();
 	}
 
+	@Override
+	public List<String> indirizziCheContengonoUnaStringaNelNumSerialeArticoli(String stringaDaConfrontare)
+			throws Exception {
+		stringaDaConfrontare="%"+stringaDaConfrontare+"%";
+		TypedQuery<String> query = entityManager.createQuery("select distinct(o.indirizzoSpedizione) from Ordine o join o.articoli a where a.numeroSeriale like ?1", String.class);
+		query.setParameter(1, stringaDaConfrontare);
+		return query.getResultList();
+	}
+
+	@Override
+	public Ordine ordineConSpedizionePiuRecente(Categoria categoria) throws Exception {
+		TypedQuery<Ordine> query = entityManager
+				.createQuery("select o FROM Ordine o join o.articoli a join a.categorie c where c =?1 group by (o.dataSpedizione)", Ordine.class);
+		query.setParameter(1, categoria);
+		return query.getResultList().get(0);
+	}
+
 }

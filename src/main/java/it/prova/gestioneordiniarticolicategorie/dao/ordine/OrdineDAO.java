@@ -11,5 +11,9 @@ public interface OrdineDAO extends IBaseDAO<Ordine>{
 	public Ordine caricaSingoloElementoEagerArticolo(Long id) throws Exception;
 	
 	public List<Ordine> ordiniEffettuatiPerUnaDeterminataCategoria(Categoria categoria) throws Exception;
+	
+	public List<String> indirizziCheContengonoUnaStringaNelNumSerialeArticoli (String stringaDaConfrontare) throws Exception;
+	
+	public Ordine ordineConSpedizionePiuRecente (Categoria categoria) throws Exception;
 
 }

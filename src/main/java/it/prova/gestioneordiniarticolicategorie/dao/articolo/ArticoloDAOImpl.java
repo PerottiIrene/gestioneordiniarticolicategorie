@@ -91,4 +91,10 @@ public class ArticoloDAOImpl implements ArticoloDAO{
 		return query.getSingleResult().longValue();
 	}
 
+	@Override
+	public List<Articolo> articoliConOrdineSpeditoOltreLaDataDiScadenza() throws Exception {
+		TypedQuery<Articolo> query = entityManager.createQuery("select a from Articolo a join a.ordine o join a.categorie c where o.dataSpedizione > o.dataScadenza", Articolo.class);
+		return query.getResultList();
+	}
+
 }

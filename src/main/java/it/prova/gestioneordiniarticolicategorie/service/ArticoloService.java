@@ -35,4 +35,6 @@ public interface ArticoloService {
 	public long sommaPrezziDegliArticoliDiUnaCategoria (Categoria categoria) throws Exception;
 	
 	public long sommaPrezziArticoliIndrizzatiAdUnDestinatario (String nomeDestinatario) throws Exception;
+	
+	public List<Articolo> articoliConOrdineSpeditoOltreLaDataDiScadenza () throws Exception;
 }
